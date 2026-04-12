@@ -1,3 +1,4 @@
+import Footer from '../components/Footer.jsx';
 import React from 'react';
 import { useScrollReveal } from '../utils.jsx';
 import personImg from '../assets/person1.jpeg';
@@ -182,15 +183,7 @@ export default function About() {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="site-footer">
-        <div className="footer-text">
-          <span className="footer-logo">FitPoint<span>369</span></span>
-          <br />
-          <span style={{ marginTop: '8px', display: 'inline-block' }}>
-            © 2025 FitPoint369. All rights reserved.
-          </span>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

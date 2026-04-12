@@ -3,6 +3,7 @@ import { StatCounter, useScrollReveal, waLink } from '../utils.jsx';
 import './Home.css';
 import { supabase } from '../lib/supabase';
 import EventDetailModal from '../components/EventDetailModal';
+import Footer from '../components/Footer.jsx';
 
 const PROGRAMS = [
   { id: 'weight-loss', icon: '🔥', name: 'Weight Loss Program', desc: 'Structured fat-burning workouts and calorie-deficit meal plans tailored to your body type.' },
@@ -331,25 +332,10 @@ export default function Home({ setPage }) {
             </form>
           </div>
 
-          {/* SOCIAL LINKS PLACEHOLDER */}
-          <div className="social-placeholder">
-            {/* SOCIAL LINKS PLACEHOLDER — will be added later */}
-            [ Social media icons placeholder ]
-          </div>
         </div>
       </section>
 
-      {/* ===== FOOTER ===== */}
-      <footer className="site-footer">
-        {/* ADMIN PANEL HOOK */}
-        <div className="footer-text">
-          <span className="footer-logo">FitPoint<span>369</span></span>
-          <br />
-          <span style={{ marginTop: '8px', display: 'inline-block' }}>
-            © 2025 FitPoint369. All rights reserved.
-          </span>
-        </div>
-      </footer>
+      <Footer />
 
       {showEventModal && (
         <EventDetailModal

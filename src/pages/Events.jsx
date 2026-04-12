@@ -1,3 +1,4 @@
+import Footer from '../components/Footer.jsx';
 import React, { useState, useEffect } from 'react';
 import { useScrollReveal } from '../utils.jsx';
 import { supabase } from '../lib/supabase';
@@ -128,15 +129,7 @@ export default function Events() {
         </div>
       </section>
 
-      <footer className="site-footer" style={{ marginTop: 'auto' }}>
-        <div className="footer-text">
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: 'white' }}>
-            FitPoint<span className="accent">369</span>
-          </span>
-          <br />
-          <span style={{ marginTop: '8px', display: 'inline-block' }}>© 2025 FitPoint369. All rights reserved.</span>
-        </div>
-      </footer>
+      <Footer style={{ marginTop: 'auto' }} />
 
       {showEventModal && (
         <EventDetailModal

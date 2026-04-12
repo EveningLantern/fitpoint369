@@ -1,3 +1,4 @@
+import Footer from '../components/Footer.jsx';
 import React from 'react';
 import { waLink, useScrollReveal } from '../utils.jsx';
 
@@ -123,15 +124,7 @@ export default function Workouts() {
         </div>
       </section>
 
-      <footer className="site-footer">
-        <div className="footer-text">
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: 'white' }}>
-            FitPoint<span className="accent">369</span>
-          </span>
-          <br />
-          <span style={{ marginTop: '8px', display: 'inline-block' }}>© 2025 FitPoint369. All rights reserved.</span>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
