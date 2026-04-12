@@ -8,12 +8,12 @@ const PLANS = [
     features: ['Tailored macro targets', 'Weekly meal rotation', 'Grocery list included'],
   },
   {
-    num: '02', icon: '💊', name: 'Supplement Guidance',
+    num: '02', icon: '💊', name: 'Nutrition Guidance',
     desc: 'Cut through the confusion of the supplement industry. Get a personalized, budget-friendly supplement stack to support your goals without wasting money.',
     features: ['Goal-based supplement stack', 'Dosage & timing guide', 'Budget-friendly options'],
   },
   {
-    num: '03', icon: '📚', name: 'Nutrition Education',
+    num: '03', icon: '📚', name: 'Health Education',
     desc: 'Learn the fundamentals of nutrition science so you can make smart food choices for life — not just while on a program.',
     features: ['Macronutrient deep-dive', 'Label reading crash course', 'Mindful eating practices'],
   },

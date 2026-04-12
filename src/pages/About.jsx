@@ -43,8 +43,8 @@ export default function About() {
           <div className="about-mission-top reveal">
             <div className="about-label">Our Mission</div>
             <h2 className="about-section-heading">
-              Built to Deliver <span className="accent">Real,</span><br />
-              <span className="accent">Lasting Change.</span>
+              MAKE THE <span className="accent">WORLD,</span><br />
+              <span className="accent">HEALTHIER AND HAPPIER</span>
             </h2>
             <div className="about-mission-body">
               <p>

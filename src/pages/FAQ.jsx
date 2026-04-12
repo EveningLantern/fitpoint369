@@ -7,8 +7,8 @@ const FAQS = [
     a: "FitPoint369 offers 5 core programs: Weight Loss, Weight Gain, Lifestyle Transformation, Skin & Glow, and Special Challenges. Each is fully customized to your body type, goals, and lifestyle. We also offer Diet & Nutrition plans and structured Workout Programs separately.",
   },
   {
-    q: 'How do I purchase a program?',
-    a: "All purchases are made directly via WhatsApp for a personal, friction-free experience. Simply click the 'Buy Now' button on any program card, and you'll be connected with the FitPoint369 team who will guide you through the onboarding and payment process.",
+    q: 'How do I join this program?',
+    a: "All enrollments are made directly via WhatsApp for a personal, friction-free experience. Simply click the 'Join this program Now' button on any program card, and you'll be connected with the FitPoint369 team who will guide you through the onboarding and payment process.",
   },
   {
     q: 'Are the programs suitable for beginners?',

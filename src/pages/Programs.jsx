@@ -10,7 +10,7 @@ const PROGRAMS = [
   {
     num: '02', icon: '💪', name: 'Weight Gain Program',
     desc: 'Designed for hardgainers and those looking to build lean mass with calorie-surplus nutrition and progressive overload training protocols.',
-    features: ['Personalized calorie targets', 'Progressive strength training', 'Supplement guidance included'],
+    features: ['Personalized calorie targets', 'Progressive strength training', 'Nutrition Guidance included'],
   },
   {
     num: '03', icon: '✨', name: 'Lifestyle Transformation',
@@ -85,7 +85,7 @@ export default function Programs() {
                   id={`prog-cta-${p.num}`}
                 >
                   <button className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                    Buy Now on WhatsApp →
+                    Join this program Now →
                   </button>
                 </a>
               </div>

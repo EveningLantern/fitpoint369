@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import { CountdownTimer, StatCounter, useScrollReveal, waLink } from '../utils.jsx';
+import React, { useState, useEffect, useRef } from 'react';
+import { StatCounter, useScrollReveal, waLink } from '../utils.jsx';
 import './Home.css';
-
-const EVENT_DATE = '2026-05-15T00:00:00';
+import { supabase } from '../lib/supabase';
+import EventDetailModal from '../components/EventDetailModal';
 
 const PROGRAMS = [
   { id: 'weight-loss', icon: '🔥', name: 'Weight Loss Program', desc: 'Structured fat-burning workouts and calorie-deficit meal plans tailored to your body type.' },
@@ -17,6 +17,19 @@ const AVATAR_COLORS = ['#AAFF00', '#C8FF00', '#7DCC00', '#5FA800', '#3D7A00'];
 export default function Home({ setPage }) {
   useScrollReveal();
   const cardRef = useRef(null);
+
+  const [liveEvent, setLiveEvent] = useState(null);
+  const [showEventModal, setShowEventModal] = useState(false);
+
+  useEffect(() => {
+    async function fetchEvent() {
+      const { data } = await supabase.from('events').select('*').eq('id', 'current').single();
+      if (data && data.is_live) {
+        setLiveEvent(data);
+      }
+    }
+    fetchEvent();
+  }, []);
 
   // 3D tilt effect
   const handleMouseMove = (e) => {
@@ -85,7 +98,7 @@ export default function Home({ setPage }) {
                 ))}
               </div>
               <div className="social-proof-text">
-                <div className="proof-count">500+ Lives Transformed</div>
+                <div className="proof-count">1000+ Lives Transformed</div>
                 <div className="proof-label">and growing daily</div>
               </div>
             </div>
@@ -102,34 +115,47 @@ export default function Home({ setPage }) {
           </div>
 
           {/* Right — Event Card */}
+          {liveEvent && (
           <div
             className="hero-right"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
           >
             <div className="hero-card-glow" />
-            <div className="event-card" ref={cardRef}>
-              <span className="tag tag-accent">🔥 LIVE EVENT</span>
-              <div className="event-card-title">30-Day Shred Challenge</div>
-              <div className="event-card-dates">May 15 – June 15, 2026</div>
-              <div className="divider" />
-              <ul className="event-features">
-                <li className="event-feature"><span className="check">✓</span> Daily Workout Plans</li>
-                <li className="event-feature"><span className="check">✓</span> Custom Meal Guide</li>
-                <li className="event-feature"><span className="check">✓</span> Live Check-ins</li>
-              </ul>
-              <div className="countdown-label-text">Event Starts In</div>
-              <CountdownTimer targetDate={EVENT_DATE} />
-              <button
-                className="btn-primary"
-                style={{ width: '100%', justifyContent: 'center' }}
-                onClick={() => setPage('events')}
-                id="cta-event"
-              >
-                Join This Event →
-              </button>
+            <div 
+              className="event-card" 
+              ref={cardRef}
+              style={{
+                backgroundImage: liveEvent.banner_url ? `url(${liveEvent.banner_url})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+                minHeight: '300px'
+              }}
+            >
+              {/* Overlay to ensure text readability */}
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(22,22,22,0.95), rgba(22,22,22,0.6))' }}></div>
+              <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                <span className="tag tag-accent" style={{ alignSelf: 'flex-start' }}>🔥 LIVE EVENT</span>
+                
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', marginBottom: '16px' }}>
+                    {liveEvent.title}
+                  </h3>
+                  <button
+                    className="btn-primary"
+                    style={{ width: '100%', justifyContent: 'center' }}
+                    onClick={() => setShowEventModal(true)}
+                    id="cta-event"
+                  >
+                    {liveEvent.join_button_label || 'Join Event'} →
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
+          )}
         </div>
       </section>
 
@@ -137,7 +163,7 @@ export default function Home({ setPage }) {
       <section className="stats-bar" id="stats">
         <div className="stats-inner">
           {[
-            { num: 500, suffix: '+', label: 'Transformations' },
+            { num: 1000, suffix: '+', label: 'Transformations' },
             { num: 10, suffix: '+', label: 'Programs' },
             { num: 3, suffix: '', label: 'Expert Coaches' },
             { num: 4.9, suffix: '★', label: 'Avg Rating' },
@@ -210,7 +236,7 @@ export default function Home({ setPage }) {
                   id={`prog-${p.id}`}
                 >
                   <button className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                    Buy Now →
+                    Join this program Now →
                   </button>
                 </a>
               </div>
@@ -324,6 +350,13 @@ export default function Home({ setPage }) {
           </span>
         </div>
       </footer>
+
+      {showEventModal && (
+        <EventDetailModal
+          eventData={liveEvent}
+          onClose={() => setShowEventModal(false)}
+        />
+      )}
     </div>
   );
 }
