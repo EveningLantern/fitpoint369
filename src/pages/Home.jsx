@@ -6,8 +6,8 @@ import EventDetailModal from '../components/EventDetailModal';
 import Footer from '../components/Footer.jsx';
 
 const PROGRAMS = [
-  { id: 'weight-loss', icon: '🔥', name: 'Weight Loss Program', desc: 'Structured fat-burning workouts and calorie-deficit meal plans tailored to your body type.' },
-  { id: 'weight-gain', icon: '💪', name: 'Weight Gain Program', desc: 'Calorie-surplus plans and progressive overload training to build lean mass efficiently.' },
+  { id: 'weight-loss', icon: '🔥', name: 'Fat Loss Program', desc: 'Structured fat-burning workouts and calorie-deficit meal plans tailored to your body type.' },
+  { id: 'weight-gain', icon: '💪', name: 'Muscle Gain Program', desc: 'Calorie-surplus plans and progressive overload training to build lean mass efficiently.' },
   { id: 'lifestyle', icon: '✨', name: 'Lifestyle Transformation', desc: 'A holistic approach to health — sleep, stress, nutrition, and movement combined.' },
   { id: 'skin-glow', icon: '🌿', name: 'Skin & Glow Program', desc: 'Nutrition protocols and habits designed to give you radiant skin from the inside out.' },
   { id: 'challenge', icon: '🏆', name: 'Special Challenges', desc: 'Intense 15–30 day challenges to push your limits and accelerate transformation.' },
@@ -117,45 +117,45 @@ export default function Home({ setPage }) {
 
           {/* Right — Event Card */}
           {liveEvent && (
-          <div
-            className="hero-right"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="hero-card-glow" />
-            <div 
-              className="event-card" 
-              ref={cardRef}
-              style={{
-                backgroundImage: liveEvent.banner_url ? `url(${liveEvent.banner_url})` : 'none',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                position: 'relative',
-                overflow: 'hidden',
-                minHeight: '300px'
-              }}
+            <div
+              className="hero-right"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
             >
-              {/* Overlay to ensure text readability */}
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(22,22,22,0.95), rgba(22,22,22,0.6))' }}></div>
-              <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
-                <span className="tag tag-accent" style={{ alignSelf: 'flex-start' }}>⭐️ SPOTLIGHT EVENT</span>
-                
-                <div>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', marginBottom: '16px' }}>
-                    {liveEvent.title}
-                  </h3>
-                  <button
-                    className="btn-primary"
-                    style={{ width: '100%', justifyContent: 'center' }}
-                    onClick={() => setShowEventModal(true)}
-                    id="cta-event"
-                  >
-                    {liveEvent.join_button_label || 'Join Event'} →
-                  </button>
+              <div className="hero-card-glow" />
+              <div
+                className="event-card"
+                ref={cardRef}
+                style={{
+                  backgroundImage: liveEvent.banner_url ? `url(${liveEvent.banner_url})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  minHeight: '300px'
+                }}
+              >
+                {/* Overlay to ensure text readability */}
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(22,22,22,0.95), rgba(22,22,22,0.6))' }}></div>
+                <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                  <span className="tag tag-accent" style={{ alignSelf: 'flex-start' }}>⭐️ SPOTLIGHT EVENT</span>
+
+                  <div>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', marginBottom: '16px' }}>
+                      {liveEvent.title}
+                    </h3>
+                    <button
+                      className="btn-primary"
+                      style={{ width: '100%', justifyContent: 'center' }}
+                      onClick={() => setShowEventModal(true)}
+                      id="cta-event"
+                    >
+                      {liveEvent.join_button_label || 'Join Event'} →
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           )}
         </div>
       </section>
