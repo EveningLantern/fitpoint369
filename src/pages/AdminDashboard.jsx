@@ -35,9 +35,18 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           >
             Events
           </button>
+          <button
+            className={activeTab === 'offers' ? 'btn-primary' : 'btn-ghost'}
+            onClick={() => setActiveTab('offers')}
+            style={{ padding: '8px 24px' }}
+          >
+            Offers
+          </button>
         </div>
 
-        {activeTab === 'stories' ? <StoriesManager /> : <EventManager />}
+        {activeTab === 'stories' && <StoriesManager />}
+        {activeTab === 'events' && <EventManager />}
+        {activeTab === 'offers' && <OffersManager />}
       </div>
     </div>
   );
@@ -149,6 +158,7 @@ function StoriesManager() {
               style={{ padding: '8px' }}
               required 
             />
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Recommended: 4:5 ratio (e.g. 1080x1350 px).</p>
           </div>
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Name</label>
@@ -198,38 +208,62 @@ function StoriesManager() {
 // EVENT MANAGER
 // ==========================================
 function EventManager() {
-  const [eventData, setEventData] = useState(null);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Form State
+  const [editingId, setEditingId] = useState(null);
+  const [eventData, setEventData] = useState({
+    title: '', sub_heading: '', body: '',
+    start_date: '', end_date: '', join_button_label: 'Join Event', join_whatsapp_message: '', banner_url: ''
+  });
   const [saving, setSaving] = useState(false);
   const [bannerFile, setBannerFile] = useState(null);
 
   useEffect(() => {
-    fetchEvent();
+    fetchEvents();
   }, []);
 
-  async function fetchEvent() {
+  async function fetchEvents() {
     setLoading(true);
-    const { data, error } = await supabase.from('events').select('*').eq('id', 'current').single();
+    const { data, error } = await supabase.from('events').select('*').order('created_at', { ascending: false });
     if (data) {
-      setEventData(data);
-    } else {
-      // Default fallback if row doesn't exist
-      setEventData({
-        is_live: false, title: '', sub_heading: '', body: '',
-        start_date: '', end_date: '', join_button_label: 'Join Event', join_whatsapp_message: '', banner_url: ''
-      });
+      setEvents(data);
     }
     setLoading(false);
   }
 
+  function handleEdit(evt) {
+    setEditingId(evt.id);
+    setEventData({
+      title: evt.title || '',
+      sub_heading: evt.sub_heading || '',
+      body: evt.body || '',
+      start_date: evt.start_date || '',
+      end_date: evt.end_date || '',
+      join_button_label: evt.join_button_label || 'Join Event',
+      join_whatsapp_message: evt.join_whatsapp_message || '',
+      banner_url: evt.banner_url || ''
+    });
+    setBannerFile(null);
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null);
+    setEventData({
+      title: '', sub_heading: '', body: '',
+      start_date: '', end_date: '', join_button_label: 'Join Event', join_whatsapp_message: '', banner_url: ''
+    });
+    setBannerFile(null);
+  }
+
   async function handleSave(e) {
-    if (e) e.preventDefault();
+    e.preventDefault();
     setSaving(true);
     
     try {
       let finalBannerUrl = eventData.banner_url;
 
-      // Handle custom banner upload if a new file is selected
       if (bannerFile) {
         const fileExt = bannerFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
@@ -240,9 +274,11 @@ function EventManager() {
         finalBannerUrl = data.publicUrl;
       }
 
+      const isNew = !editingId;
+      const payloadId = editingId || crypto.randomUUID();
+
       const payload = {
-        id: 'current',
-        is_live: eventData.is_live,
+        id: payloadId,
         title: eventData.title,
         sub_heading: eventData.sub_heading,
         body: eventData.body,
@@ -254,12 +290,16 @@ function EventManager() {
         updated_at: new Date().toISOString()
       };
 
+      if (isNew) {
+        payload.is_live = false; // default new events to not spotlight
+      }
+
       const { error } = await supabase.from('events').upsert(payload);
       if (error) throw error;
       
-      alert('Event details saved successfully!');
-      setBannerFile(null); // Clear file input
-      fetchEvent(); // Refresh data
+      alert(isNew ? 'Event created successfully!' : 'Event updated successfully!');
+      handleCancelEdit();
+      fetchEvents();
     } catch (err) {
       alert('Error saving event: ' + err.message);
     } finally {
@@ -267,111 +307,348 @@ function EventManager() {
     }
   }
 
-  async function toggleLiveStatus() {
-    const newStatus = !eventData.is_live;
+  async function toggleSpotlight(evt) {
+    const newStatus = !evt.is_live;
     if (newStatus) {
-       // Want to make it live: Ask for confirmation 
-       if(!window.confirm("Are you sure you want to make this event live immediately? It will appear on the Home page.")) {
+       if(!window.confirm(`Are you sure you want to make "${evt.title}" the Spotlight event? This will replace any currently spotlit event.`)) {
          return;
        }
     } else {
-       if(!window.confirm("Are you sure you want to take this event down? It will be removed from the Home page.")) {
+       if(!window.confirm(`Remove "${evt.title}" from Spotlight? No event will be highlighted until you spotlight another.`)) {
          return;
        }
     }
 
     try {
-       const { error } = await supabase.from('events').upsert({ id: 'current', is_live: newStatus });
+       if (newStatus) {
+         // Turn off all other events
+         await supabase.from('events').update({ is_live: false }).neq('id', evt.id);
+       }
+       // Update this event
+       const { error } = await supabase.from('events').update({ is_live: newStatus }).eq('id', evt.id);
        if (error) throw error;
-       setEventData(prev => ({ ...prev, is_live: newStatus }));
+       
+       fetchEvents();
     } catch(err) {
-       alert('Error toggling status: ' + err.message);
+       alert('Error toggling spotlight: ' + err.message);
     }
   }
 
-  if (loading) return <p>Loading event data...</p>;
-  if (!eventData) return <p>Could not load event data.</p>;
+  async function handleDeleteEvent(id) {
+    if (!window.confirm('Are you sure you want to delete this event permanently?')) return;
+    try {
+      await supabase.from('events').delete().eq('id', id);
+      if (editingId === id) handleCancelEdit();
+      fetchEvents();
+    } catch (err) {
+      alert('Error deleting event: ' + err.message);
+    }
+  }
 
   return (
-    <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', margin: 0 }}>Current Event Settings</h3>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Status:</span>
-          <div 
-            style={{ 
-              padding: '6px 16px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold',
-              background: eventData.is_live ? '#AAFF0020' : '#FF444420',
-              color: eventData.is_live ? 'var(--accent)' : '#FF4444'
-            }}
-          >
-            {eventData.is_live ? 'LIVE' : 'OFFLINE'}
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.5fr)', gap: '40px' }}>
+      
+      {/* FORM */}
+      <div className="card">
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', margin: '0 0 24px' }}>
+          {editingId ? 'Edit Event' : 'Create New Event'}
+        </h3>
+        <form onSubmit={handleSave}>
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Event Title</label>
+              <input type="text" value={eventData.title} onChange={e => setEventData({...eventData, title: e.target.value})} className="form-input" required />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Sub Heading</label>
+              <input type="text" value={eventData.sub_heading} onChange={e => setEventData({...eventData, sub_heading: e.target.value})} className="form-input" required />
+            </div>
           </div>
-          <button 
-            onClick={toggleLiveStatus}
-            className={eventData.is_live ? "btn-ghost" : "btn-primary"}
-            style={{ padding: '8px 16px', fontSize: '12px' }}
-          >
-            {eventData.is_live ? 'Take Offline' : 'Publish Live'}
-          </button>
-        </div>
+
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Start Date</label>
+              <input type="date" value={eventData.start_date} onChange={e => setEventData({...eventData, start_date: e.target.value})} className="form-input" required />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>End Date</label>
+              <input type="date" value={eventData.end_date} onChange={e => setEventData({...eventData, end_date: e.target.value})} className="form-input" required />
+            </div>
+          </div>
+          
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Body / Description</label>
+            <textarea value={eventData.body} onChange={e => setEventData({...eventData, body: e.target.value})} className="form-input" required style={{ height: '100px' }}></textarea>
+          </div>
+
+          <div style={{ marginBottom: '16px' }}>
+             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Banner Image</label>
+             {eventData.banner_url && (
+               <div style={{ marginBottom: '12px' }}>
+                 <img src={eventData.banner_url} alt="Current Banner" style={{ height: '60px', borderRadius: '4px', objectFit: 'cover' }} />
+               </div>
+             )}
+             <input type="file" accept="image/*" onChange={e => setBannerFile(e.target.files[0])} className="form-input" style={{ padding: '8px' }} />
+             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Recommended: 16:9 ratio. Leave empty to keep current.</p>
+          </div>
+
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Button Label</label>
+              <input type="text" value={eventData.join_button_label} onChange={e => setEventData({...eventData, join_button_label: e.target.value})} className="form-input" required />
+            </div>
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>WhatsApp Message</label>
+              <input type="text" value={eventData.join_whatsapp_message} onChange={e => setEventData({...eventData, join_whatsapp_message: e.target.value})} className="form-input" required placeholder="Hi! I want to join..." />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button type="submit" className="btn-primary" disabled={saving} style={{ flex: 1, justifyContent: 'center' }}>
+              {saving ? 'Saving...' : (editingId ? 'Update Event' : 'Create Event')}
+            </button>
+            {editingId && (
+              <button type="button" className="btn-ghost" onClick={handleCancelEdit}>
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
       </div>
 
-      <form onSubmit={handleSave}>
-        <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Event Title</label>
-            <input type="text" value={eventData.title || ''} onChange={e => setEventData({...eventData, title: e.target.value})} className="form-input" required />
+      {/* LIST */}
+      <div>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', marginBottom: '24px' }}>Existing Events</h3>
+        {loading ? <p>Loading...</p> : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {events.map(evt => (
+              <div key={evt.id} className="card" style={{ display: 'flex', gap: '20px', padding: '20px', alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <div style={{ fontWeight: 700, fontSize: '18px' }}>{evt.title}</div>
+                    {evt.is_live && <span className="tag tag-accent" style={{ fontSize: '10px' }}>SPOTLIGHT</span>}
+                  </div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                    {evt.start_date} – {evt.end_date}
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'end' }}>
+                  <button 
+                    onClick={() => toggleSpotlight(evt)}
+                    style={{ background: evt.is_live ? '#FF444420' : '#AAFF0020', color: evt.is_live ? '#FF4444' : 'var(--accent)', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}
+                  >
+                    {evt.is_live ? 'Remove Spotlight' : 'Make Spotlight'}
+                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => handleEdit(evt)} style={{ background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
+                    <button onClick={() => handleDeleteEvent(evt.id)} style={{ background: 'var(--bg-secondary)', color: '#FF4444', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {events.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No events found.</p>}
           </div>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Sub Heading</label>
-            <input type="text" value={eventData.sub_heading || ''} onChange={e => setEventData({...eventData, sub_heading: e.target.value})} className="form-input" required />
-          </div>
-        </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
-        <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Start Date</label>
-            <input type="date" value={eventData.start_date || ''} onChange={e => setEventData({...eventData, start_date: e.target.value})} className="form-input" required />
-          </div>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>End Date</label>
-            <input type="date" value={eventData.end_date || ''} onChange={e => setEventData({...eventData, end_date: e.target.value})} className="form-input" required />
-          </div>
-        </div>
-        
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Body / Description</label>
-          <textarea value={eventData.body || ''} onChange={e => setEventData({...eventData, body: e.target.value})} className="form-input" required style={{ height: '100px' }}></textarea>
-        </div>
+// ==========================================
+// OFFERS MANAGER
+// ==========================================
+function OffersManager() {
+  const [offers, setOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Form State
+  const [editingId, setEditingId] = useState(null);
+  const [offerData, setOfferData] = useState({
+    badge: '',
+    title: '',
+    originalPrice: '',
+    price: '',
+    includes: '',
+    expiry: '',
+    waMsg: ''
+  });
+  const [saving, setSaving] = useState(false);
 
-        <div style={{ marginBottom: '16px' }}>
-           <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Static Background Banner Image</label>
-           {eventData.banner_url && (
-             <div style={{ marginBottom: '12px' }}>
-               <img src={eventData.banner_url} alt="Current Banner" style={{ height: '100px', borderRadius: '8px', objectFit: 'cover' }} />
-             </div>
-           )}
-           <input type="file" accept="image/*" onChange={e => setBannerFile(e.target.files[0])} className="form-input" style={{ padding: '8px' }} />
-           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Recommended size: 16:9 ratio (e.g. 1920x1080). Leave empty to keep current image.</p>
-        </div>
+  useEffect(() => {
+    fetchOffers();
+  }, []);
 
-        <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+  async function fetchOffers() {
+    setLoading(true);
+    const { data, error } = await supabase.from('offers').select('*').order('created_at', { ascending: false });
+    if (data) {
+      setOffers(data);
+    } else {
+      setOffers([]);
+    }
+    setLoading(false);
+  }
+
+  function handleEdit(off) {
+    setEditingId(off.id);
+    setOfferData({
+      badge: off.badge || '',
+      title: off.title || '',
+      originalPrice: off.originalPrice || '',
+      price: off.price || '',
+      includes: Array.isArray(off.includes) ? off.includes.join('\n') : (off.includes || ''),
+      expiry: off.expiry || '',
+      waMsg: off.waMsg || ''
+    });
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null);
+    setOfferData({
+      badge: '', title: '', originalPrice: '', price: '', includes: '', expiry: '', waMsg: ''
+    });
+  }
+
+  async function handleSave(e) {
+    e.preventDefault();
+    setSaving(true);
+    
+    try {
+      const isNew = !editingId;
+      const payloadId = editingId || crypto.randomUUID();
+
+      // Convert includes textarea to array of non-empty strings
+      const includesArray = offerData.includes.split('\n').map(i => i.trim()).filter(i => i.length > 0);
+
+      const payload = {
+        id: payloadId,
+        badge: offerData.badge,
+        title: offerData.title,
+        originalPrice: offerData.originalPrice,
+        price: offerData.price,
+        includes: includesArray,
+        expiry: offerData.expiry,
+        waMsg: offerData.waMsg,
+      };
+
+      if (isNew) {
+        payload.created_at = new Date().toISOString();
+      }
+
+      const { error } = await supabase.from('offers').upsert(payload);
+      if (error) throw error;
+      
+      alert(isNew ? 'Offer created successfully!' : 'Offer updated successfully!');
+      handleCancelEdit();
+      fetchOffers();
+    } catch (err) {
+      alert('Error saving offer: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteOffer(id) {
+    if (!window.confirm('Are you sure you want to delete this offer permanently?')) return;
+    try {
+      await supabase.from('offers').delete().eq('id', id);
+      if (editingId === id) handleCancelEdit();
+      fetchOffers();
+    } catch (err) {
+      alert('Error deleting offer: ' + err.message);
+    }
+  }
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.5fr)', gap: '40px' }}>
+      
+      {/* FORM */}
+      <div className="card">
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', margin: '0 0 24px' }}>
+          {editingId ? 'Edit Offer' : 'Create New Offer'}
+        </h3>
+        <form onSubmit={handleSave}>
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Badge (e.g. LIMITED TIME)</label>
+              <input type="text" value={offerData.badge} onChange={e => setOfferData({...offerData, badge: e.target.value})} className="form-input" required />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Title</label>
+              <input type="text" value={offerData.title} onChange={e => setOfferData({...offerData, title: e.target.value})} className="form-input" required />
+            </div>
+          </div>
+
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Original Price (₹)</label>
+              <input type="number" min="0" value={offerData.originalPrice} onChange={e => setOfferData({...offerData, originalPrice: e.target.value})} className="form-input" required placeholder="e.g. 9999" />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Discounted Price (₹)</label>
+              <input type="number" min="0" value={offerData.price} onChange={e => setOfferData({...offerData, price: e.target.value})} className="form-input" required placeholder="e.g. 4999" />
+            </div>
+          </div>
+          
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Join Button Label</label>
-            <input type="text" value={eventData.join_button_label || ''} onChange={e => setEventData({...eventData, join_button_label: e.target.value})} className="form-input" required />
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Includes (One item per line)</label>
+            <textarea value={offerData.includes} onChange={e => setOfferData({...offerData, includes: e.target.value})} className="form-input" required style={{ height: '100px' }} placeholder="Item 1&#10;Item 2"></textarea>
           </div>
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>WhatsApp Message pre-fill</label>
-            <input type="text" value={eventData.join_whatsapp_message || ''} onChange={e => setEventData({...eventData, join_whatsapp_message: e.target.value})} className="form-input" required placeholder="Hi! I want to join..." />
-          </div>
-        </div>
 
-        <button type="submit" className="btn-primary" disabled={saving}>
-          {saving ? 'Saving...' : 'Save Draft Settings'}
-        </button>
-      </form>
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Expiry Text (e.g. Only 7 days left)</label>
+              <input type="text" value={offerData.expiry} onChange={e => setOfferData({...offerData, expiry: e.target.value})} className="form-input" required />
+            </div>
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>WhatsApp Message pre-fill</label>
+              <input type="text" value={offerData.waMsg} onChange={e => setOfferData({...offerData, waMsg: e.target.value})} className="form-input" required placeholder="Hi! I want to claim..." />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button type="submit" className="btn-primary" disabled={saving} style={{ flex: 1, justifyContent: 'center' }}>
+              {saving ? 'Saving...' : (editingId ? 'Update Offer' : 'Create Offer')}
+            </button>
+            {editingId && (
+              <button type="button" className="btn-ghost" onClick={handleCancelEdit}>
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* LIST */}
+      <div>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', marginBottom: '24px' }}>Existing Offers</h3>
+        {loading ? <p>Loading...</p> : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {offers.map(off => (
+              <div key={off.id} className="card" style={{ display: 'flex', gap: '20px', padding: '20px', alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <div style={{ fontWeight: 700, fontSize: '18px' }}>{off.title}</div>
+                    <span className="tag tag-red" style={{ fontSize: '10px' }}>{off.badge}</span>
+                  </div>
+                  <div style={{ fontSize: '15px', color: 'var(--accent)', fontWeight: 'bold' }}>
+                    ₹{Number(off.price).toLocaleString('en-IN')} <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)', fontSize: '13px', marginLeft: '6px' }}>₹{Number(off.originalPrice).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'end' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => handleEdit(off)} style={{ background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
+                    <button onClick={() => handleDeleteOffer(off.id)} style={{ background: 'var(--bg-secondary)', color: '#FF4444', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {offers.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No offers found.</p>}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

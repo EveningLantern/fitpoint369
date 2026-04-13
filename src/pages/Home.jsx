@@ -24,8 +24,8 @@ export default function Home({ setPage }) {
 
   useEffect(() => {
     async function fetchEvent() {
-      const { data } = await supabase.from('events').select('*').eq('id', 'current').single();
-      if (data && data.is_live) {
+      const { data } = await supabase.from('events').select('*').eq('is_live', true).limit(1).maybeSingle();
+      if (data) {
         setLiveEvent(data);
       }
     }
@@ -138,7 +138,7 @@ export default function Home({ setPage }) {
               {/* Overlay to ensure text readability */}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(22,22,22,0.95), rgba(22,22,22,0.6))' }}></div>
               <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
-                <span className="tag tag-accent" style={{ alignSelf: 'flex-start' }}>🔥 LIVE EVENT</span>
+                <span className="tag tag-accent" style={{ alignSelf: 'flex-start' }}>⭐️ SPOTLIGHT EVENT</span>
                 
                 <div>
                   <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', marginBottom: '16px' }}>
@@ -207,7 +207,14 @@ export default function Home({ setPage }) {
                   <span className="feature-card-num">{num}</span>
                   <div className="feature-card-title">{title}</div>
                   <p className="feature-card-desc">{desc}</p>
-                  <span className="feature-link">Learn More →</span>
+                  <a
+                    href={waLink(`Hi! I want to learn more about "${title}" at FitPoint369.`)}
+                    className="feature-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Learn More →
+                  </a>
                 </div>
               ))}
             </div>

@@ -4,12 +4,12 @@ import { waLink, useScrollReveal } from '../utils.jsx';
 
 const PROGRAMS = [
   {
-    num: '01', icon: '🔥', name: 'Weight Loss Program',
+    num: '01', icon: '🔥', name: 'Fat loss Program ',
     desc: 'A structured, science-backed fat-burning program featuring progressive workouts, calorie-deficit meal plans, and weekly check-ins to ensure consistent results.',
     features: ['Custom meal plan included', 'Weekly check-ins with coach', 'Lifetime access to resources'],
   },
   {
-    num: '02', icon: '💪', name: 'Weight Gain Program',
+    num: '02', icon: '💪', name: 'Muscle Gain Program',
     desc: 'Designed for hardgainers and those looking to build lean mass with calorie-surplus nutrition and progressive overload training protocols.',
     features: ['Personalized calorie targets', 'Progressive strength training', 'Nutrition Guidance included'],
   },

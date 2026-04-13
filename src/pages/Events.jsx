@@ -4,28 +4,26 @@ import { useScrollReveal } from '../utils.jsx';
 import { supabase } from '../lib/supabase';
 import EventDetailModal from '../components/EventDetailModal';
 
-const PAST_EVENTS = [
-  { title: '21-Day Core Crusher', date: 'March 1 – March 21, 2025', desc: 'An intense core-focused challenge with daily ab circuits and nutrition tracking.' },
-  { title: 'New Year Body Reset', date: 'Jan 1 – Jan 31, 2025', desc: 'Ring in the year strong with a full-body reset program designed for lasting change.' },
-  { title: 'Winter Bulk Season', date: 'Dec 1 – Dec 31, 2024', desc: 'A 30-day muscle-building program timed with the holiday season surplus eating phase.' },
-];
-
 export default function Events() {
   useScrollReveal();
   
   const [liveEvent, setLiveEvent] = useState(null);
+  const [otherEvents, setOtherEvents] = useState([]);
   const [showEventModal, setShowEventModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchEvent() {
-      const { data } = await supabase.from('events').select('*').eq('id', 'current').single();
-      if (data && data.is_live) {
-        setLiveEvent(data);
+    async function fetchEvents() {
+      const { data, error } = await supabase.from('events').select('*').order('created_at', { ascending: false });
+      if (data && !error) {
+        const spotlight = data.find(e => e.is_live);
+        const others = data.filter(e => !e.is_live);
+        setLiveEvent(spotlight || null);
+        setOtherEvents(others);
       }
       setLoading(false);
     }
-    fetchEvent();
+    fetchEvents();
   }, []);
 
   return (
@@ -33,9 +31,9 @@ export default function Events() {
       <div className="page-hero">
         <div className="reveal">
           <h1>
-            Current <span className="accent">Events</span>
+            Our <span className="accent">Events</span>
           </h1>
-          <p>Join live transformation challenges with real-time coaching and community</p>
+          <p>Join live transformation challenges and view past ones</p>
         </div>
       </div>
 
@@ -49,12 +47,12 @@ export default function Events() {
             <div
               className="reveal"
               style={{
-                background: 'linear-gradient(135deg, #161616, #1a1a1a)',
-                border: '1px solid #1e1e1e',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: '24px',
                 padding: '0',
                 marginBottom: '64px',
-                boxShadow: '0 0 60px #AAFF0015',
+                boxShadow: '0 0 60px var(--accent-glow-xs)',
                 overflow: 'hidden',
                 position: 'relative'
               }}
@@ -72,9 +70,9 @@ export default function Events() {
                 }} />
               )}
               
-              <div style={{ position: 'relative', zIndex: 1, padding: '48px', background: 'linear-gradient(to right, rgba(22,22,22,1) 0%, rgba(22,22,22,0.6) 100%)' }}>
+              <div style={{ position: 'relative', zIndex: 1, padding: '48px', background: 'linear-gradient(to right, var(--bg-card) 20%, transparent 100%)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
-                  <span className="tag tag-accent">🔥 LIVE EVENT</span>
+                  <span className="tag tag-accent">⭐️ SPOTLIGHT EVENT</span>
                 </div>
 
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '52px', lineHeight: 1.05, marginBottom: '8px' }}>
@@ -98,34 +96,38 @@ export default function Events() {
               </div>
             </div>
           ) : (
-            <div className="reveal" style={{ textAlign: 'center', marginBottom: '64px', padding: '48px', background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid #222' }}>
-               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', marginBottom: '8px' }}>No Live Events Currently</h2>
-               <p style={{ color: 'var(--text-secondary)' }}>Check back later or explore our ongoing programs.</p>
+            <div className="reveal" style={{ textAlign: 'center', marginBottom: '64px', padding: '48px', background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
+               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', marginBottom: '8px' }}>No Spotlight Event Currently</h2>
+               <p style={{ color: 'var(--text-secondary)' }}>Check back later or explore our past challenges below.</p>
             </div>
           )}
 
           {/* Past Events */}
-          <h2 className="section-heading reveal" style={{ marginBottom: '32px' }}>
-            Past <span className="accent">Events</span>
-          </h2>
-          <div className="grid-3">
-            {PAST_EVENTS.map((e, i) => (
-              <div key={i} className="reveal" style={{
-                background: 'var(--bg-card)',
-                border: '1px solid #1e1e1e',
-                borderRadius: '16px',
-                padding: '28px',
-                opacity: '0.65',
-              }}>
-                <span className="tag tag-muted" style={{ marginBottom: '16px', display: 'inline-block' }}>ENDED</span>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', marginBottom: '8px', color: 'var(--text-secondary)' }}>
-                  {e.title}
-                </h3>
-                <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '10px' }}>{e.date}</div>
-                <p style={{ color: 'var(--text-muted)', fontSize: '13px', lineHeight: 1.5 }}>{e.desc}</p>
+          {otherEvents.length > 0 && (
+            <>
+              <h2 className="section-heading reveal" style={{ marginBottom: '32px' }}>
+                Other <span className="accent">Events</span>
+              </h2>
+              <div className="grid-3">
+                {otherEvents.map((e, i) => (
+                  <div key={i} className="reveal" style={{
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '16px',
+                    padding: '28px',
+                    opacity: '0.85',
+                  }}>
+                    <span className="tag tag-muted" style={{ marginBottom: '16px', display: 'inline-block' }}>ENDED</span>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                      {e.title}
+                    </h3>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '10px' }}>{e.start_date} – {e.end_date}</div>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '13px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{e.sub_heading}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
       </section>
 

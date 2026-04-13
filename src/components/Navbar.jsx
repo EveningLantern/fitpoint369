@@ -7,9 +7,11 @@ const NAV_PAGES = ['home', 'programs', 'diet', 'workouts', 'offers', 'contact'];
 
 export default function Navbar({ currentPage, setPage }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [aboutDropdownOpen, setAboutDropdownOpen] = useState(false);
+  const [programsDropdownOpen, setProgramsDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const dropdownRef = useRef(null);
+  const aboutRef = useRef(null);
+  const programsRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -19,8 +21,11 @@ export default function Navbar({ currentPage, setPage }) {
 
   useEffect(() => {
     const handleClick = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
+      if (aboutRef.current && !aboutRef.current.contains(e.target)) {
+        setAboutDropdownOpen(false);
+      }
+      if (programsRef.current && !programsRef.current.contains(e.target)) {
+        setProgramsDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClick);
@@ -36,11 +41,13 @@ export default function Navbar({ currentPage, setPage }) {
   const nav = (page) => {
     setPage(page);
     setMenuOpen(false);
-    setDropdownOpen(false);
+    setAboutDropdownOpen(false);
+    setProgramsDropdownOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const isAboutActive = ['about', 'stories', 'faq'].includes(currentPage);
+  const isProgramsActive = ['programs', 'events'].includes(currentPage);
 
   return (
     <>
@@ -64,15 +71,15 @@ export default function Navbar({ currentPage, setPage }) {
           </li>
 
           {/* About Dropdown */}
-          <li className="nav-dropdown-wrapper" ref={dropdownRef}>
+          <li className="nav-dropdown-wrapper" ref={aboutRef}>
             <span
               className={`nav-link ${isAboutActive ? 'active' : ''}`}
-              onClick={() => setDropdownOpen(!dropdownOpen)}
+              onClick={() => setAboutDropdownOpen(!aboutDropdownOpen)}
               id="nav-about"
             >
-              About <span className={`dropdown-arrow ${dropdownOpen ? 'open' : ''}`}>▾</span>
+              About <span className={`dropdown-arrow ${aboutDropdownOpen ? 'open' : ''}`}>▾</span>
             </span>
-            {dropdownOpen && (
+            {aboutDropdownOpen && (
               <div className="nav-dropdown">
                 <span className="dropdown-item" onClick={() => nav('about')} id="nav-about-us">
                   <span className="dropdown-item-icon">🏢</span>
@@ -90,14 +97,27 @@ export default function Navbar({ currentPage, setPage }) {
             )}
           </li>
 
-          <li>
+          {/* Programs Dropdown */}
+          <li className="nav-dropdown-wrapper" ref={programsRef}>
             <span
-              className={`nav-link ${currentPage === 'programs' ? 'active' : ''}`}
-              onClick={() => nav('programs')}
+              className={`nav-link ${isProgramsActive ? 'active' : ''}`}
+              onClick={() => setProgramsDropdownOpen(!programsDropdownOpen)}
               id="nav-programs"
             >
-              Programs
+              Programs <span className={`dropdown-arrow ${programsDropdownOpen ? 'open' : ''}`}>▾</span>
             </span>
+            {programsDropdownOpen && (
+              <div className="nav-dropdown">
+                <span className="dropdown-item" onClick={() => nav('programs')} id="nav-all-programs">
+                  <span className="dropdown-item-icon">🏋️</span>
+                  All Programs
+                </span>
+                <span className="dropdown-item" onClick={() => nav('events')} id="nav-events">
+                  <span className="dropdown-item-icon">🔥</span>
+                  Live Events
+                </span>
+              </div>
+            )}
           </li>
           <li>
             <span
@@ -163,7 +183,9 @@ export default function Navbar({ currentPage, setPage }) {
         <span className="mobile-nav-link mobile-nav-sub" onClick={() => nav('about')} id="mn-about">About Us</span>
         <span className="mobile-nav-link mobile-nav-sub" onClick={() => nav('stories')} id="mn-stories">Success Stories</span>
         <span className="mobile-nav-link mobile-nav-sub" onClick={() => nav('faq')} id="mn-faq">FAQ</span>
-        <span className="mobile-nav-link" onClick={() => nav('programs')} id="mn-programs">Programs</span>
+        <span className="mobile-nav-link mobile-nav-section-label">Programs</span>
+        <span className="mobile-nav-link mobile-nav-sub" onClick={() => nav('programs')} id="mn-programs">All Programs</span>
+        <span className="mobile-nav-link mobile-nav-sub" onClick={() => nav('events')} id="mn-events">Live Events</span>
         <span className="mobile-nav-link" onClick={() => nav('diet')} id="mn-diet">Diet &amp; Nutrition</span>
         <span className="mobile-nav-link" onClick={() => nav('workouts')} id="mn-workouts">Workouts</span>
         <span className="mobile-nav-link offers-mobile" onClick={() => nav('offers')} id="mn-offers">✦ Offers</span>

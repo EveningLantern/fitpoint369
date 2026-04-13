@@ -48,7 +48,7 @@ export default function Stories({ setPage }) {
                   <img 
                     src={s.image_url} 
                     alt={s.name} 
-                    style={{ width: '100%', height: '240px', objectFit: 'cover' }} 
+                    style={{ width: '100%', aspectRatio: '4 / 5', objectFit: 'cover' }} 
                   />
                   <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div>
