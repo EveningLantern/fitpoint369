@@ -166,8 +166,8 @@ export default function Home({ setPage }) {
           {[
             { num: 1000, suffix: '+', label: 'Transformations' },
             { num: 10, suffix: '+', label: 'Programs' },
-            { num: 3, suffix: '', label: 'Expert Coaches' },
-            { num: 4.9, suffix: '★', label: 'Avg Rating' },
+            { num: 4, suffix: '', label: 'Expert Coaches' },
+            { num: 4.5, suffix: '★', label: 'Avg Rating' },
           ].map(({ num, suffix, label }) => (
             <div key={label} className="stat-item reveal">
               <span className="stat-number">
@@ -263,9 +263,9 @@ export default function Home({ setPage }) {
         <div className="testimonial-stripe" />
         <div className="testimonial-inner">
           <div className="rating-card reveal">
-            <div className="rating-big">4.9</div>
+            <div className="rating-big">4.5</div>
             <div className="rating-slash">/ 5</div>
-            <div className="rating-stars">★★★★★</div>
+            <div className="rating-stars">★★★★½</div>
             <div className="rating-based">Based on 200+ reviews</div>
           </div>
           <div className="testimonial-right reveal">
@@ -277,7 +277,7 @@ export default function Home({ setPage }) {
               Thousands of people across India have transformed their bodies and lives with FitPoint369.
               Our clients see real results — not just on the scale, but in their energy, confidence, and daily life.
             </p>
-            <div className="stars" style={{ margin: '8px 0' }}>★★★★★</div>
+            <div className="stars" style={{ margin: '8px 0' }}>★★★★½</div>
             <p className="review-text">
               "FitPoint369 completely changed my life. I lost 18kg in 60 days following their plan. The coach
               was always available and the meal guide was so easy to follow."

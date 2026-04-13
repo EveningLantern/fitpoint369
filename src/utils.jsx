@@ -76,6 +76,7 @@ export function StatCounter({ end, suffix = '' }) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const observed = useRef(false);
+  const isFloat = !Number.isInteger(end);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -88,7 +89,8 @@ export function StatCounter({ end, suffix = '' }) {
             const elapsed = now - start;
             const progress = Math.min(elapsed / duration, 1);
             const eased = 1 - Math.pow(1 - progress, 3);
-            setCount(Math.floor(eased * end));
+            const currentVal = eased * end;
+            setCount(isFloat ? currentVal.toFixed(1) : Math.floor(currentVal));
             if (progress < 1) requestAnimationFrame(animate);
           };
           requestAnimationFrame(animate);
@@ -98,7 +100,7 @@ export function StatCounter({ end, suffix = '' }) {
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, [end]);
+  }, [end, isFloat]);
 
   return <span ref={ref}>{count}{suffix}</span>;
 }
