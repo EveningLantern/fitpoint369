@@ -76,7 +76,7 @@ export default function Programs() {
                 </ul>
                 <div style={{ borderTop: '1px solid #222', marginBottom: '16px' }} />
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: '22px', color: 'var(--accent)', marginBottom: '16px' }}>
-                  Contact for Price
+                  Contact for Details
                 </div>
                 <a
                   href={waLink(`Hi! I want to buy the ${p.name} package. Please share details.`)}

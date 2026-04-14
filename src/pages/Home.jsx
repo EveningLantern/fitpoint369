@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StatCounter, useScrollReveal, waLink } from '../utils.jsx';
+import { StatCounter, useScrollReveal, waLink, useCountdown } from '../utils.jsx';
 import './Home.css';
 import { supabase } from '../lib/supabase';
-import EventDetailModal from '../components/EventDetailModal';
 import Footer from '../components/Footer.jsx';
+import p1 from '../assets/p1.jpeg';
+import p2 from '../assets/p2.jpeg';
+import p3 from '../assets/p3.jpeg';
+import p4 from '../assets/p4.jpeg';
+import p5 from '../assets/p5.jpeg';
 
 const PROGRAMS = [
   { id: 'weight-loss', icon: '🔥', name: 'Fat Loss Program', desc: 'Structured fat-burning workouts and calorie-deficit meal plans tailored to your body type.' },
@@ -13,14 +17,13 @@ const PROGRAMS = [
   { id: 'challenge', icon: '🏆', name: 'Special Challenges', desc: 'Intense 15–30 day challenges to push your limits and accelerate transformation.' },
 ];
 
-const AVATAR_COLORS = ['#AAFF00', '#C8FF00', '#7DCC00', '#5FA800', '#3D7A00'];
+const PERSON_IMAGES = [p1, p2, p3, p4, p5];
 
 export default function Home({ setPage }) {
   useScrollReveal();
   const cardRef = useRef(null);
 
   const [liveEvent, setLiveEvent] = useState(null);
-  const [showEventModal, setShowEventModal] = useState(false);
 
   useEffect(() => {
     async function fetchEvent() {
@@ -88,13 +91,13 @@ export default function Home({ setPage }) {
             {/* Social Proof */}
             <div className="social-proof">
               <div className="avatar-stack">
-                {AVATAR_COLORS.map((color, i) => (
+                {PERSON_IMAGES.map((src, i) => (
                   <div
                     key={i}
                     className="avatar-circle"
-                    style={{ background: color, zIndex: 5 - i }}
+                    style={{ zIndex: 5 - i, padding: 0, overflow: 'hidden' }}
                   >
-                    {String.fromCharCode(65 + i)}
+                    <img src={src} alt={`person ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                   </div>
                 ))}
               </div>
@@ -132,27 +135,51 @@ export default function Home({ setPage }) {
                   backgroundPosition: 'center',
                   position: 'relative',
                   overflow: 'hidden',
-                  minHeight: '300px'
                 }}
               >
                 {/* Overlay to ensure text readability */}
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(22,22,22,0.95), rgba(22,22,22,0.6))' }}></div>
-                <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
-                  <span className="tag tag-accent" style={{ alignSelf: 'flex-start' }}>⭐️ SPOTLIGHT EVENT</span>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,10,0.97) 0%, rgba(10,10,10,0.75) 100%)' }}></div>
+                <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <span className="tag tag-accent" style={{ alignSelf: 'flex-start' }}>🔥 LIVE EVENT</span>
 
-                  <div>
-                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', marginBottom: '16px' }}>
-                      {liveEvent.title}
-                    </h3>
-                    <button
-                      className="btn-primary"
-                      style={{ width: '100%', justifyContent: 'center' }}
-                      onClick={() => setShowEventModal(true)}
-                      id="cta-event"
-                    >
-                      {liveEvent.join_button_label || 'Join Event'} →
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', lineHeight: 1.1, margin: 0 }}>
+                    {liveEvent.title}
+                  </h3>
+
+                  {/* Date Range */}
+                  {liveEvent.start_date && liveEvent.end_date && (
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                      {new Date(liveEvent.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(liveEvent.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                  )}
+
+                  {/* Body as checklist items */}
+                  {liveEvent.body && (
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {liveEvent.body.split('\n').filter(l => l.trim()).slice(0, 4).map((line, i) => (
+                        <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                          <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '16px' }}>✓</span>
+                          {line.replace(/^[-•✓✔*]+\s*/, '')}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* Countdown */}
+                  <HeroEventCountdown startDate={liveEvent.start_date} endDate={liveEvent.end_date} />
+
+                  {/* CTA → WhatsApp directly */}
+                  <a
+                    href={waLink(liveEvent.join_whatsapp_message || `Hi! I want to join ${liveEvent.title}`)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'block' }}
+                    id="cta-event"
+                  >
+                    <button className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                      {liveEvent.join_button_label || 'Join This Event'} →
                     </button>
-                  </div>
+                  </a>
                 </div>
               </div>
             </div>
@@ -344,12 +371,41 @@ export default function Home({ setPage }) {
 
       <Footer />
 
-      {showEventModal && (
-        <EventDetailModal
-          eventData={liveEvent}
-          onClose={() => setShowEventModal(false)}
-        />
-      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// HeroEventCountdown sub-component
+// Shows "EVENT STARTS IN" countdown before start date,
+// then "EVENT ENDS IN" countdown after start date.
+// ──────────────────────────────────────────────
+function HeroEventCountdown({ startDate, endDate }) {
+  const now = new Date();
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const hasStarted = now >= start;
+  const targetDate = hasStarted ? end : start;
+  const { days, hours, minutes, seconds } = useCountdown(targetDate.toISOString());
+
+  return (
+    <div>
+      <div className="countdown-label-text">
+        {hasStarted ? 'EVENT ENDS IN' : 'EVENT STARTS IN'}
+      </div>
+      <div className="countdown-row">
+        {[
+          { val: days, label: 'DAYS' },
+          { val: hours, label: 'HRS' },
+          { val: minutes, label: 'MIN' },
+          { val: seconds, label: 'SEC' },
+        ].map(({ val, label }) => (
+          <div key={label} className="countdown-box">
+            <span className="countdown-num">{String(val).padStart(2, '0')}</span>
+            <span className="countdown-label">{label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -377,8 +377,20 @@ function EventManager() {
           </div>
           
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Body / Description</label>
-            <textarea value={eventData.body} onChange={e => setEventData({...eventData, body: e.target.value})} className="form-input" required style={{ height: '100px' }}></textarea>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+              Body / Checklist Items
+            </label>
+            <textarea
+              value={eventData.body}
+              onChange={e => setEventData({...eventData, body: e.target.value})}
+              className="form-input"
+              required
+              style={{ height: '120px' }}
+              placeholder={"Daily Workout Plans\nCustom Meal Guide\nLive Check-ins\n(One item per line — shown as ✓ checklist on the event card)"}
+            ></textarea>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              Each line becomes a ✓ checklist item on the public event card. Keep each item short and punchy.
+            </p>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
