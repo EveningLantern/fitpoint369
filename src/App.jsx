@@ -13,16 +13,24 @@ import Offers from './pages/Offers.jsx';
 import Events from './pages/Events.jsx';
 import Contact from './pages/Contact.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
-import AdminLoginButton from './components/AdminLoginButton.jsx';
+import AdminLoginModal from './components/AdminLoginModal.jsx';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [adminUser, setAdminUser] = useState(null);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
 
   const setPage = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Listen for admin login trigger from footer
+  useEffect(() => {
+    const handleOpenAdmin = () => setShowAdminLogin(true);
+    window.addEventListener('open-admin-login', handleOpenAdmin);
+    return () => window.removeEventListener('open-admin-login', handleOpenAdmin);
+  }, []);
 
   // Re-run scroll reveal on page change
   useEffect(() => {
@@ -50,7 +58,17 @@ export default function App() {
     <>
       <Navbar currentPage={currentPage} setPage={setPage} />
       <main>{renderPage()}</main>
-      <AdminLoginButton onLogin={(user) => { setAdminUser(user); setPage('admin'); }} />
+      
+      {showAdminLogin && (
+        <AdminLoginModal 
+          onClose={() => setShowAdminLogin(false)}
+          onLogin={(user) => {
+            setAdminUser(user);
+            setShowAdminLogin(false);
+            setPage('admin');
+          }}
+        />
+      )}
     </>
   );
 }

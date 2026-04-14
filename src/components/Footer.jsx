@@ -28,8 +28,36 @@ export default function Footer({ style = {} }) {
             </svg>
           </a>
         </div>
-        <div style={{ marginTop: '24px', fontSize: '12px', color: 'var(--text-muted)' }}>
-          © 2025 FitPoint369. All rights reserved.
+        <div style={{ marginTop: '24px', fontSize: '12px', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>© 2025 FitPoint369. All rights reserved.</span>
+          <button 
+            onClick={() => window.dispatchEvent(new CustomEvent('open-admin-login'))}
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--text-muted)',
+              borderRadius: '4px',
+              color: 'var(--text-muted)',
+              fontSize: '10px',
+              cursor: 'pointer',
+              opacity: 0.6,
+              transition: 'all 0.2s ease',
+              padding: '4px 8px',
+              textTransform: 'lowercase',
+              letterSpacing: '0.5px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = 1;
+              e.currentTarget.style.borderColor = 'var(--accent)';
+              e.currentTarget.style.color = 'var(--accent)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = 0.6;
+              e.currentTarget.style.borderColor = 'var(--text-muted)';
+              e.currentTarget.style.color = 'var(--text-muted)';
+            }}
+          >
+            admin login
+          </button>
         </div>
       </div>
     </footer>

@@ -138,7 +138,7 @@ export default function Home({ setPage }) {
                 }}
               >
                 {/* Overlay to ensure text readability */}
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,10,0.97) 0%, rgba(10,10,10,0.75) 100%)' }}></div>
+                <div style={{ position: 'absolute', inset: 0, background: 'var(--bg-overlay)' }}></div>
                 <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <span className="tag tag-accent" style={{ alignSelf: 'flex-start' }}>🔥 LIVE EVENT</span>
 

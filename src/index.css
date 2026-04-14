@@ -26,6 +26,10 @@
   --about-closing-bg: rgba(170, 255, 0, 0.04);
   --about-badge-bg: rgba(10, 10, 10, 0.8);
   --about-mission-box-bg: rgba(170, 255, 0, 0.06);
+
+  /* Overlays & Shadows */
+  --bg-overlay: linear-gradient(to top, rgba(10, 10, 10, 0.97) 0%, rgba(10, 10, 10, 0.75) 100%);
+  --card-shadow-large: 0 20px 60px rgba(0, 0, 0, 0.8);
 }
 
 /* ===== LIGHT MODE ===== */
@@ -50,6 +54,10 @@
   --about-closing-bg: rgba(77, 153, 0, 0.06);
   --about-badge-bg: rgba(234, 237, 229, 0.9);
   --about-mission-box-bg: rgba(77, 153, 0, 0.07);
+
+  /* Overlays & Shadows */
+  --bg-overlay: linear-gradient(to top, rgba(245, 247, 242, 0.98) 0%, rgba(245, 247, 242, 0.8) 100%);
+  --card-shadow-large: 0 20px 60px rgba(0, 0, 0, 0.12);
 }
 
 /* === RESET & BASE === */
